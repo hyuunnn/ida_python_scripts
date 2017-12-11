@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <script src="/static/Chart.js"></script>
+</head>
+<body>
+{% for dllname in dllnames %}
+    <h3 class="text-center">{{ dllname[0] }}</h3>
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8"><canvas id="{{ dllname[0] }}"></canvas></div>
+        <div class="col-md-2"></div>
+    </div>
+    <script>
+    var canvas = document.getElementById("{{ dllname[0] }}");
+    var data = {
+        labels: {{ names[dllname[0]]|safe }},
+        datasets: [
+            {
+                backgroundColor: "rgba(255,99,132,0.2)",
+                borderColor: "rgba(255,99,132,1)",
+                borderWidth: 2,
+                hoverBackgroundColor: "rgba(255,99,132,0.4)",
+                hoverBorderColor: "rgba(255,99,132,1)",
+                data: {{ numbers[dllname[0]] }}
+            }
+        ]
+    };
+          
+    var myBarChart = new Chart(canvas, {
+        type: 'horizontalBar',
+        data: data
+    });      
+    </script>
+{% endfor %}
+</body>
+</html>
