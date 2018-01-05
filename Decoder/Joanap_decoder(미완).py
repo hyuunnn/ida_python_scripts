@@ -87,4 +87,5 @@ Str_3 = 0
 for i in range(len(v15)):
     v9[i] = v9[i+3]
 v9[int(v15,16)+2] = first_alphabet
+print (v9)
 print (''.join(chr(int(str(i),16)) for i in v9[3:]))
