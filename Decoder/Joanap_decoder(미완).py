@@ -1,8 +1,8 @@
 #MD5 : 7FE80CEE04003FED91C02E3A372F4B01
 #MD5 : FD59AF723B7A4044AB41F1B2A33350D6
 
-#string = list("!emCFgv7Xc8ItaVGN0bMf") # netapi32.dll
-string = list("!m2MBHjehQ7IK6uqIsejT")
+string = list("!emCFgv7Xc8ItaVGN0bMf") # netapi32.dll
+#string = list("!m2MBHjehQ7IK6uqIsejT")
 v21 = list("1A2z3B4y5C6x7D8w9E0v$F_uGtHsIrJqKpLoMnNmOlPkQjRiShTgUfVeWdXcYbZa")
 v22 = list("9025jhdho39ehe2")
 Source = list("iamsorry!@1234567")
@@ -87,5 +87,4 @@ Str_3 = 0
 for i in range(len(v15)):
     v9[i] = v9[i+3]
 v9[int(v15,16)+2] = first_alphabet
-
-print(v9)
+print (''.join(chr(int(str(i),16)) for i in v9[3:]))
