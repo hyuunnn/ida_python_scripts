@@ -51,7 +51,6 @@ def string_decode(string):
                 v12 = v11
             v11 = v11 - v12
             v31 = v9[v36]
-            #print(v12,hex(Source_3),v9[v36])
             v9[v36] = hex(int(str(v9[v36]),16) << v12 | (v23[v12]) & (Source_3 >> (6 - v12)))
             while int(v9[v36],16) > 0xFF:
                 v9[v36] = hex(int(str(v9[v36]),16) - 0x100) # ex) 0xdc0 -> 0xc0
@@ -61,33 +60,24 @@ def string_decode(string):
                 v36 += 1
                 v35 = 8
                 v9[v36] = 0
+    v13 = 0
+    k = v36 - 1
+    while v13 < k:
+        v9[v13] = hex(int(str(v9[v13]),16) - int(str(v9[v13+1]),16))
+        while int(str(v9[v13]),16) < 0:
+            v9[v13] = hex(int(str(v9[v13]),16) + 0x100)
+        v13 += 1
 
-    k = 0
-    for i in range(v36-1):
-        v9[i] = hex(int(str(v9[i]),16) - int(str(v9[i+1]),16))
-        while int(str(v9[i]),16) < 0:
-            v9[i] = hex(int(str(v9[i]),16) + 0x100)
-        k = i
     while k >= 1:
         v9[k] = hex(int(str(v9[k]),16) - int(str(v9[k - 1]),16))
-        #print(Source[k % 32])
-        try:
-            v9[k] = hex(int(str(v9[k]),16) - (int(Source[k % 32],16)))
-        except:
-            return ""
+        v9[k] = hex(int(str(v9[k]),16) - (int(Source[k % v32],16)))
         while int(str(v9[k]),16) < 0:
             v9[k] = hex(int(str(v9[k]),16) + 0x100)
         k = k - 1
 
-    v15 = v9[1]
-    first_alphabet = v9[0]
-    #print (first_alphabet)
+    #v15 = v9[1]
+    #first_alphabet = v9[0]
 
-    Str_3 = 0
-
-    for i in range(len(v15)):
-        v9[i] = v9[i+3]
-    v9[int(v15,16)+2] = first_alphabet
     return v9[3:]
 
 decode_func = 0x401757
