@@ -3,4 +3,72 @@
 #MD5 : 8B69A3EE4AB5A45E39D3F100084B1953
 #MD5 : F5B75F2DC24CBA9FEC540E2C62D36332
 
-subkey = [0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x61,0x62,0x63,0x64,0x65,0x66,0x67,0x68,0x69,0x6A,0x6B,0x6C,0x6D,0x6E,0x6F,0x70,0x71,0x72,0x73,0x74,0x75,0x76,0x77,0x78,0x79,0x7A,0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2B,0x2F]
+
+subkey = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
+string = list("PjdCLUE+RS0+PkQtN0JP")
+v3 = []
+v20 = 0
+v5 = 0
+v7 = 0
+v9 = 0
+v17 = 0
+#for i in range(len(string)):
+i = 0
+
+
+def Decode(v3,v20,v5,v7,v9,v17,i):
+    while(1):
+        v4 = ord(string[i+2])
+        if v20:
+            return v3 
+        #for j in range(1,len(subkey)):
+        #    if string[i] == subkey[j]:
+        v5 = ord(string[i]) - ord("A")
+        if v5 < 0:
+            return v3 
+        v6 = v5 << 6
+        #for j in range(1,len(subkey)):                # - ord 이 부분에 문제가 있음
+        #    if string[i] == subkey[j]:
+        v7 = ord(string[i+2]) - ord("A")
+        if v7 < 0:
+            return v3 # return -1
+        v8 = (v7 + v6) << 6
+        if v4 == 61:
+            v20 = 1
+        else:
+            #for j in range(1,len(subkey)):
+            #    if string[i] == subkey[j]:
+            v9 = ord(string[i+8]) - ord("A")
+            if v9 < 0:
+                return v3
+            print(hex(v9))
+            return -1
+            v8 += v9
+        v10 = ord(string[i+3])
+        v11 = v8 << 6
+        v12 = v11
+        #if v10 != 61:
+        #    break
+        #v13 = v20 + 1
+        #v15 = 
+        #v14 = v20+=1 -2 < 0
+        for j in subkey:
+            if string[i] == j:
+                v17 == ord(string[i])
+        if v17 < 0:
+            return v3 # return -1
+        v12 = v17 + v11
+        v13 = 0
+        v3.append(hex(v12))
+        i += 1
+        if v13 < 2:
+            v3.append(hex(v12))
+        if v13 < 1:
+            v3.append(hex(v12))
+        try:
+            v16 = ord(string[i+4])
+        except:
+            return v3
+        v4 += 4
+
+print(Decode(v3,v20,v5,v7,v9,v17,i))
