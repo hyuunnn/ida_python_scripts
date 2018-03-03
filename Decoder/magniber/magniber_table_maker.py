@@ -2,8 +2,6 @@ import struct
 import binascii
 from string import ascii_lowercase
 
-table = [0x1, 0x1A, 0x2A4, 0x44A8, 0x6F910, 0xB54BA0]
-
 def magniber_table(extension):
     result = 0
     length = len(extension)-1
@@ -18,6 +16,7 @@ def magniber_table(extension):
     return result
 
 if __name__ == "__main__":
+    table = [0x1, 0x1A, 0x2A4, 0x44A8, 0x6F910, 0xB54BA0]
     f = open("magiber_table.txt","w")
 
     for a in ascii_lowercase:

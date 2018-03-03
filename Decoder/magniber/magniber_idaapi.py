@@ -4,10 +4,6 @@ import binascii
 import struct
 from string import ascii_lowercase
 
-add = 0x13c4fd6 # loc_13C4FD6
-table = [0x1, 0x1A, 0x2A4, 0x44A8, 0x6F910, 0xB54BA0]
-result_table = {}
-
 def magniber_table(extension):
     result = 0
     length = len(extension)-1
@@ -22,6 +18,10 @@ def magniber_table(extension):
     return result
 
 if __name__ == "__main__":
+    add = 0x13c4fd6 # loc_13C4FD6
+    result_table = {}
+    table = [0x1, 0x1A, 0x2A4, 0x44A8, 0x6F910, 0xB54BA0]
+
     for a in ascii_lowercase:
         result_table[magniber_table(a)] = a
 
