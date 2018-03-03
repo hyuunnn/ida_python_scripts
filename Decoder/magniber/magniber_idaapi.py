@@ -21,38 +21,39 @@ def magniber_table(extension):
     result = binascii.hexlify(struct.pack("<L",result))
     return result
 
-for a in ascii_lowercase:
-    result_table[magniber_table(a)] = a
+if __name__ == "__main__":
+    for a in ascii_lowercase:
+        result_table[magniber_table(a)] = a
 
-for a in ascii_lowercase:
-    for b in ascii_lowercase:
-        result_table[magniber_table(a+b)] = a+b
+    for a in ascii_lowercase:
+        for b in ascii_lowercase:
+            result_table[magniber_table(a+b)] = a+b
 
-for a in ascii_lowercase:
-    for b in ascii_lowercase:
-        for c in ascii_lowercase:
-            result_table[magniber_table(a+b+c)] = a+b+c
+    for a in ascii_lowercase:
+        for b in ascii_lowercase:
+            for c in ascii_lowercase:
+                result_table[magniber_table(a+b+c)] = a+b+c
 
-for a in ascii_lowercase:
-    for b in ascii_lowercase:
-        for c in ascii_lowercase:
-            for d in ascii_lowercase:
-                result_table[magniber_table(a+b+c+d)] = a+b+c+d
+    for a in ascii_lowercase:
+        for b in ascii_lowercase:
+            for c in ascii_lowercase:
+                for d in ascii_lowercase:
+                    result_table[magniber_table(a+b+c+d)] = a+b+c+d
 
-while True:
-    add = idc.NextHead(add)
+    while True:
+        add = idc.NextHead(add)
 
-    if GetMnem(add) == "call" and GetOpnd(add,0) == "edi":
-        break
+        if GetMnem(add) == "call" and GetOpnd(add,0) == "edi":
+            break
 
-    if GetMnem(add) == "mov" and "esp+0BE" in GetOpnd(add, 0):
-        value = GetOpnd(add, 1)
-        if "h" in value:
-            value = value.replace("h","")
-            
-        value = int("0x"+value,16)
-        try:
-            value = result_table[binascii.hexlify(struct.pack("<L",value))]
-            print(value)
-        except:
-            pass
+        if GetMnem(add) == "mov" and "esp+0BE" in GetOpnd(add, 0):
+            value = GetOpnd(add, 1)
+            if "h" in value:
+                value = value.replace("h","")
+                
+            value = int("0x"+value,16)
+            try:
+                value = result_table[binascii.hexlify(struct.pack("<L",value))]
+                print(value)
+            except:
+                pass
