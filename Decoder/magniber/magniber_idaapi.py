@@ -53,6 +53,6 @@ while True:
         value = int("0x"+value,16)
         try:
             value = result_table[binascii.hexlify(struct.pack("<L",value))]
-            print(value + )
+            print(value)
         except:
             pass
