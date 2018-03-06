@@ -5,7 +5,7 @@
 
 
 subkey = list("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/")
-string = list("PjdCLUE+RS0+PkQtN0JP")
+string = list("PjdCLUE+RS0+PkQtN0JP") # # 185.216.117.85
 v3 = []
 v20 = 0
 v5 = 0
