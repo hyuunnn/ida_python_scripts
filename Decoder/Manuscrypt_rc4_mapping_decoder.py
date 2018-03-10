@@ -21,6 +21,27 @@ def get_string(addr, last_addr, flag=0):
             
     return out
 
+def decode_data(data):
+    v4 = 0
+    result = 0
+    v7 = 0x7DE1FDE
+    v8 = 0x311AA827
+    v9 = 0xE3EAE988
+    v10 = 0xBECAD862
+    key = [0xDE,0x1F,0xEC,0x7D,0x27,0xA8,0x1A,0x31,0xB8,0xE9,0xEA,0xE3,0x62,0xD8,0xCA,0xBE]
+    table = list(range(256))
+
+    while result < 256:
+        v4 += table[result] + key[result % 16]
+        v5 = table[result]
+        result += 1
+        while v4 > 0xFF:
+            v4 = v4 - 0x100
+        table[result] = table[v4]
+        table[v4] = v5
+    
+
+
 for addr in XrefsTo(decode_func, flags=0):
     next_address = idc.PrevHead(addr.frm)
     for i in range(0,3):
