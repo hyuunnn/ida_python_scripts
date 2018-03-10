@@ -6,20 +6,20 @@ total_decode = 0
 add_list = []
 
 def get_string(addr, last_addr, flag=0):
-    out = ""
+    out = []
     if flag == 0:
         while addr < last_addr:
-            out += chr(Byte(addr))
+            out.append(hex(Byte(addr)))
             addr += 1
     else:
         while True:
             if Byte(addr) != 0:
-                out += chr(Byte(addr))
+                out.append(hex(Byte(addr)))
             else:
                 break
             addr += 1
             
-  return out
+    return out
 
 for addr in XrefsTo(decode_func, flags=0):
     next_address = idc.PrevHead(addr.frm)
@@ -31,17 +31,15 @@ for addr in XrefsTo(decode_func, flags=0):
 
 add_list = sorted(add_list)
 count = 0
-data = []
+result = []
 
 for i in range(len(add_list)):
     next_address = add_list[i]
-    result = []
     count = i
     try:
         result.append(get_string(next_address, add_list[count+1]))
     except:
         result.append(get_string(next_address, add_list[count],1))
     next_address = idc.NextHead(next_address)
-    data.append(result)
     
-print(data)
+print(result)
