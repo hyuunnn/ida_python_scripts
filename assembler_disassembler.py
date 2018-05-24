@@ -87,7 +87,7 @@ class Tools(PluginForm):
     def OnClose(self, form):
         pass
 
-class myplugin_t(idaapi.plugin_t):
+class assem_Tool(idaapi.plugin_t):
     flags = idaapi.PLUGIN_UNL
     comment = "assembler & disassembler"
     help = "help"
@@ -95,7 +95,7 @@ class myplugin_t(idaapi.plugin_t):
     wanted_hotkey = "Ctrl+A"
 
     def init(self):
-        idaapi.msg("YaraGenerator")
+        idaapi.msg("assembler_disassembler")
         return idaapi.PLUGIN_OK
 
     def run(self, arg):
@@ -106,4 +106,4 @@ class myplugin_t(idaapi.plugin_t):
         pass
 
 def PLUGIN_ENTRY():
-    return myplugin_t()
+    return assem_Tool()

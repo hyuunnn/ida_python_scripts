@@ -117,7 +117,7 @@ class YaraGenerator(PluginForm):
     def OnClose(self, form):
         pass
 
-class myplugin_t(idaapi.plugin_t):
+class YaraPlugin(idaapi.plugin_t):
     flags = idaapi.PLUGIN_UNL
     comment = "This is YaraGenerator"
     help = "help"
@@ -136,4 +136,4 @@ class myplugin_t(idaapi.plugin_t):
         pass
 
 def PLUGIN_ENTRY():
-    return myplugin_t()
+    return YaraPlugin()
