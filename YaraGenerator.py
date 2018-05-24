@@ -125,7 +125,7 @@ class YaraPlugin(idaapi.plugin_t):
     wanted_hotkey = "Ctrl+Y"
 
     def init(self):
-        idaapi.msg("YaraGenerator")
+        idaapi.msg("YaraGenerator\n")
         return idaapi.PLUGIN_OK
 
     def run(self, arg):

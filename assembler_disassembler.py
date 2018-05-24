@@ -33,8 +33,8 @@ class Tools(PluginForm):
             try:
                 ks = Ks(KS_ARCH_X86, KS_MODE_32)
                 encoding, count = ks.asm(CODE)
+                encoding = [hex(x)[2:].upper() for x in encoding]
                 self.Assembler2.clear()
-                encoding = [hex(x) for x in encoding]
                 self.Assembler2.insertPlainText(' '.join(encoding))
             except KsError as e:
                 print("ERROR: %s" %e)
@@ -43,8 +43,8 @@ class Tools(PluginForm):
             try:
                 ks = Ks(KS_ARCH_X86, KS_MODE_64)
                 encoding, count = ks.asm(CODE)
+                encoding = [hex(x)[2:].upper() for x in encoding]
                 self.Assembler2.clear()
-                encoding = [hex(x) for x in encoding]
                 self.Assembler2.insertPlainText(' '.join(encoding))
             except KsError as e:
                 print("ERROR: %s" %e)
@@ -52,7 +52,7 @@ class Tools(PluginForm):
     def OnCreate(self, form):
         self.parent = self.FormToPyQtWidget(form)
         self.label1 = QLabel("Assembler")
-        self.label2 = QLabel("Diassembler")
+        self.label2 = QLabel("Disassembler")
         self.label3 = QLabel("Answer")
         self.label4 = QLabel("Answer")
         self.Assembler1 = QPlainTextEdit()
@@ -95,7 +95,7 @@ class assem_Tool(idaapi.plugin_t):
     wanted_hotkey = "Ctrl+A"
 
     def init(self):
-        idaapi.msg("assembler_disassembler")
+        idaapi.msg("assembler_disassembler\n")
         return idaapi.PLUGIN_OK
 
     def run(self, arg):
