@@ -91,6 +91,7 @@ class YaraGenerator(PluginForm):
                     result += "          {0}\t{1}\t\t\t\t\t|{2}".format(i.mnemonic.upper(), i.op_str.upper().replace("0X","0x"), self.ByteCode[idx].upper()) + "\n"
                 result += "      */\n"
 
+            # if self.CheckBox2.isChecked(): # yara wildcard isChecked()
             result += "      $"+name +" = " + self.ruleset_list[name][0]+"\n"
         result += "  condition:\n"
         result += "      all of them\n"
@@ -157,6 +158,8 @@ class YaraGenerator(PluginForm):
         self.label1 = QLabel("Variable name : ")
         self.label_1 = QLabel("comment option")
         self.CheckBox1 = QCheckBox()
+        self.label_2 = QLabel("wildcard option")
+        self.CheckBox2 = QCheckBox()
         self.Variable_name = QLineEdit()
         self.label2 = QLabel("Start Address : ")
         self.StartAddress = QLineEdit()
@@ -182,6 +185,8 @@ class YaraGenerator(PluginForm):
         GL1.addWidget(self.Variable_name, 0, 1)
         GL1.addWidget(self.label_1 , 0, 2)
         GL1.addWidget(self.CheckBox1, 0, 3)
+        GL1.addWidget(self.label_2 , 0, 4)
+        GL1.addWidget(self.CheckBox2, 0, 5)
         self.layout.addLayout(GL1)
 
         GL2 = QGridLayout()
