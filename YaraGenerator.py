@@ -1,11 +1,12 @@
 from idaapi import PluginForm
-from PyQt5.QtWidgets import QTableWidgetItem, QFileDialog, QTableWidget, QLineEdit, QPlainTextEdit, QPushButton, QLabel, QVBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QCheckBox, QTableWidgetItem, QFileDialog, QTableWidget, QLineEdit, QPlainTextEdit, QPushButton, QLabel, QVBoxLayout, QGridLayout
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import Qt
 from os.path import expanduser
 
 import os
 import yara
+import binascii
 
 class YaraChecker(PluginForm):
     def choose_path(self):
@@ -73,12 +74,23 @@ class YaraChecker(PluginForm):
 
 class YaraGenerator(PluginForm):
     def YaraExport(self):
+        info = idaapi.get_inf_structure()
+        if info.is_64bit():
+            md = Cs(CS_ARCH_X86, CS_MODE_64)
+        elif info.is_32bit():
+            md = Cs(CS_ARCH_X86, CS_MODE_32)
+
         result = ""
         result += "rule " + self.Variable_name.text() + "\n{\n"
         result += "  strings:\n"
         for idx, name in enumerate(self.ruleset_list.keys()):
-            result += "      "
-            result += "$"+name +" = " + self.ruleset_list[name][0]+"\n"
+            CODE = bytearray.fromhex(self.ruleset_list[name][0][1:-1].strip().replace("\\x"," "))
+            if self.CheckBox1.isChecked():
+                result += "      /*\n"
+                for i in md.disasm(CODE, 0x1000):
+                    result += ("          %s\t%s" % (i.mnemonic.upper(), i.op_str.upper())) + "\n"
+                result += "      */\n"
+            result += "      $"+name +" = " + self.ruleset_list[name][0]+"\n"
         result += "  condition:\n"
         result += "      all of them\n"
         result += "}"
@@ -103,16 +115,25 @@ class YaraGenerator(PluginForm):
         start = int(self.StartAddress.text(), 16)
         end = int(self.EndAddress.text(), 16)
 
-        while(start < end):
-            data = hex(Byte(start))[2:].upper()
-            if len(data) == 1:
-                data = "0"+data
+        while start <= end:
+            sub_end = NextHead(start)
+            data = binascii.hexlify(GetManyBytes(start, sub_end-start))
             ByteCode.append(data)
-            start += 1
+            start = sub_end
+
         self.TextEdit1.clear()
-        self.TextEdit1.insertPlainText("{" + ' '.join(ByteCode) + "}")
+        self.TextEdit1.insertPlainText("{" + ''.join(ByteCode) + "}")
 
     def SaveRule(self):
+        #info = idaapi.get_inf_structure()
+        #if info.is_64bit():
+        #    md = Cs(CS_ARCH_X86, CS_MODE_64)
+        #elif info.is_32bit():
+        #    md = Cs(CS_ARCH_X86, CS_MODE_32)
+        #CODE = bytearray.fromhex(self.TextEdit1.toPlainText()[1:-1].strip().replace("\\x"," "))
+        #for i in md.disasm(CODE, 0x1000):
+        #    print("0x%x:\t%s\t%s" %(i.address, i.mnemonic, i.op_str))
+
         self.ruleset_list[self.Variable_name.text()] = [self.TextEdit1.toPlainText(), self.StartAddress.text(), self.EndAddress.text()]
         self.tableWidget.setRowCount(len(self.ruleset_list.keys()))
         self.tableWidget.setColumnCount(4)
@@ -133,6 +154,8 @@ class YaraGenerator(PluginForm):
         self.parent = self.FormToPyQtWidget(form)
         self.ruleset_list = {}
         self.label1 = QLabel("Variable name : ")
+        self.label_1 = QLabel("comment option")
+        self.CheckBox1 = QCheckBox()
         self.Variable_name = QLineEdit()
         self.label2 = QLabel("Start Address : ")
         self.StartAddress = QLineEdit()
@@ -156,6 +179,8 @@ class YaraGenerator(PluginForm):
         GL1 = QGridLayout()
         GL1.addWidget(self.label1, 0, 0)
         GL1.addWidget(self.Variable_name, 0, 1)
+        GL1.addWidget(self.label_1 , 0, 2)
+        GL1.addWidget(self.CheckBox1, 0, 3)
         self.layout.addLayout(GL1)
 
         GL2 = QGridLayout()
