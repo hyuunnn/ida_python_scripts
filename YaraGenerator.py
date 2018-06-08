@@ -93,7 +93,7 @@ class YaraGenerator(PluginForm):
             if self.CheckBox1.isChecked():
                 result += "      /*\n"
                 for idx, i in enumerate(md.disasm(CODE, 0x1000)):
-                    result += "          {0}\t{1}\t\t\t\t\t|{2}".format(i.mnemonic.upper(), i.op_str.upper().replace("0X","0x"), self.ByteCode[idx].upper()) + "\n"
+                    result += "          {0}\t{1}".format(i.mnemonic.upper(), i.op_str.upper().replace("0X","0x")) + "\n"
                 result += "      */\n"
 
             # if self.CheckBox2.isChecked(): # yara wildcard isChecked()
@@ -118,18 +118,18 @@ class YaraGenerator(PluginForm):
         self.layout.addWidget(self.tableWidget)
 
     def MakeRule(self):
-        self.ByteCode = []
+        ByteCode = []
         start = int(self.StartAddress.text(), 16)
         end = int(self.EndAddress.text(), 16)
 
         while start <= end:
             sub_end = NextHead(start)
             data = binascii.hexlify(GetManyBytes(start, sub_end-start))
-            self.ByteCode.append(data)
+            ByteCode.append(data)
             start = sub_end
 
         self.TextEdit1.clear()
-        self.TextEdit1.insertPlainText("{" + ''.join(self.ByteCode) + "}")
+        self.TextEdit1.insertPlainText("{" + ''.join(ByteCode) + "}")
 
     def SaveRule(self):
         #info = idaapi.get_inf_structure()
