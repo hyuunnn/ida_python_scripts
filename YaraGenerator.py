@@ -88,7 +88,7 @@ class YaraGenerator(PluginForm):
             if self.CheckBox1.isChecked():
                 result += "      /*\n"
                 for i in md.disasm(CODE, 0x1000):
-                    result += ("          %s\t%s" % (i.mnemonic.upper(), i.op_str.upper())) + "\n"
+                    result += ("          %s\t%s" % (i.mnemonic.upper(), i.op_str.upper().replace("0X","0x"))) + "\n"
                 result += "      */\n"
             result += "      $"+name +" = " + self.ruleset_list[name][0]+"\n"
         result += "  condition:\n"
