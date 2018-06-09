@@ -23,13 +23,16 @@ class YaraChecker(PluginForm):
         result = {}
         for i in os.walk(self.path.text()):
             for j in i[2]:
-                f = open(i[0] + "\\" + j, "rb")
-                data = f.read()
-                matches = rule.match(data=data)
-                f.close()
-                for match in matches:
-                    strings = match.strings[0]
-                    result[os.path.basename(j)] = [i[0], hex(strings[0]).replace("L",""), strings[1], strings[2]]
+                try:
+                    f = open(i[0] + "\\" + j, "rb")
+                    data = f.read()
+                    matches = rule.match(data=data)
+                    f.close()
+                    for match in matches:
+                        strings = match.strings[0]
+                        result[os.path.basename(j)] = [i[0], hex(strings[0]).replace("L",""), strings[1], strings[2]]
+                except IOError: # Permission denied
+                    continue
         self.tableWidget.setRowCount(len(result.keys()))
         self.label4.setText(str(len(result.keys())))
         
