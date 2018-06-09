@@ -93,7 +93,8 @@ class YaraGenerator(PluginForm):
             if self.CheckBox1.isChecked():
                 result += "      /*\n"
                 for idx, i in enumerate(md.disasm(CODE, 0x1000)):
-                    result += "          {0}\t{1}".format(i.mnemonic.upper(), i.op_str.upper().replace("0X","0x")) + "\n"
+                    byte_data = "".join('{:02x}'.format(x) for x in i.bytes)
+                    result += "          %-10s\t%-30s\t\t|%s" % (i.mnemonic.upper(), i.op_str.upper().replace("0X","0x"), byte_data.upper()) + "\n"
                 result += "      */\n"
 
             # if self.CheckBox2.isChecked(): # yara wildcard isChecked()
