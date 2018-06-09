@@ -8,6 +8,7 @@ import os
 import yara
 import binascii
 import time
+import re
 
 class YaraChecker(PluginForm):
     def choose_path(self):
@@ -30,7 +31,7 @@ class YaraChecker(PluginForm):
                     f.close()
                     for match in matches:
                         strings = match.strings[0]
-                        result[os.path.basename(j)] = [i[0], hex(strings[0]).replace("L",""), strings[1], strings[2]]
+                        result[os.path.basename(j)] = [i[0], hex(strings[0]).replace("L",""), strings[1], binascii.hexlify(strings[2])]
                 except IOError: # Permission denied
                     continue
         self.tableWidget.setRowCount(len(result.keys()))
@@ -96,17 +97,81 @@ class YaraGenerator(PluginForm):
         result += "      date = \"" + time.strftime("%Y-%m-%d") + "\"\n"
         result += "      MD5 = \"" + GetInputFileMD5() + "\"\n"
         result += "  strings:\n"
-        for idx, name in enumerate(self.ruleset_list.keys()):
+        for name in self.ruleset_list.keys():
             CODE = bytearray.fromhex(self.ruleset_list[name][0][1:-1].strip().replace("\\x"," "))
             if self.CheckBox1.isChecked():
                 result += "      /*\n"
-                for idx, i in enumerate(md.disasm(CODE, 0x1000)):
+                for i in md.disasm(CODE, 0x1000):
                     byte_data = "".join('{:02x}'.format(x) for x in i.bytes)
                     result += "          %-10s\t%-30s\t\t|%s" % (i.mnemonic.upper(), i.op_str.upper().replace("0X","0x"), byte_data.upper()) + "\n"
                 result += "      */\n"
 
-            # if self.CheckBox2.isChecked(): # yara wildcard isChecked()
-            result += "      $"+name +" = " + self.ruleset_list[name][0]+"\n"
+            # http://sparksandflames.com/files/x86InstructionChart.html
+            # https://pnx.tf/files/x86_opcode_structure_and_instruction_overview.png
+            # http://ref.x86asm.net/coder32.html
+            if self.CheckBox2.isChecked(): # yara wildcard isChecked()
+                opcode = []
+                CODE = bytearray.fromhex(self.ruleset_list[name][0][1:-1].strip().replace("\\x"," "))
+                for i in md.disasm(CODE, 0x1000):
+                    byte_data = "".join('{:02x}'.format(x) for x in i.bytes)
+                    if i.mnemonic == "push":
+                        if re.compile("5[0-7]|0(6|e)|1(6|e)").match(byte_data): # push e[a-b-c]x ..
+                            opcode.append(byte_data[:1]+"?")
+                        elif re.compile("6(8|a)+").match(byte_data):
+                            opcode.append(byte_data)
+
+                    elif i.mnemonic == "pop":
+                        if re.compile("5[8-f]|07|1(7|f)").match(byte_data): # pop e[a-b-c]x ..
+                            opcode.append(byte_data[:1]+"?")
+                        elif re.compile("8f").match(byte_data):
+                            opcode.append(byte_data)
+
+                    elif i.mnemonic == "mov":
+                        if re.compile("b[8-f]").match(byte_data): # ex) b8 01 22 00 00 -> mov eax, 0x2201, bf 38 00 00 00 -> mov edi, 38 , 8b 54 24 10 -> mov edx, [esp+32ch+var_31c]
+                            opcode.append(byte_data[:1]+"?[1-4]")
+                        elif re.compile("b[0-7]").match(byte_data): # ex) b7 60 -> mov bh, 0x60
+                            opcode.append("b?"+byte_data[2:])
+                        elif re.compile("8[8-9a-c]|8e|c[7-8]").match(byte_data):
+                            opcode.append(byte_data[:1]+"?[1-8]") # ex) 8b 5c 24 14 -> mob ebx, [esp+10+ThreadParameter], 8b f0 -> mov esi, eax , c7 44 24 1c 00 00 00 00 -> mov [esp+338+var_31c], 0
+                        elif re.compile("a[0-3]").match(byte_data):
+                            opcode.append(byte_data[:1]+"?[1-4]") # ex) a1 60 40 41 00 -> mov eax, __security_cookie
+
+                    #elif i.mnemonic == "cmp":
+
+                    elif i.mnemonic == "inc":
+                        if re.compile("4[0-7]").match(byte_data):
+                            opcode.append(byte_data[:1]+"?")
+
+                    elif i.mnemonic == "dec":
+                        if re.compile("4[8-9a-f]").match(byte_data): # 48 ~ 4f
+                            opcode.append(byte_data[:1]+"?")
+
+                    elif i.mnemonic == "xor":
+                        if re.compile("3[0-5]").match(byte_data):
+                            opcode.append(byte_data[:1]+"???")
+
+                    elif i.mnemonic == "call":
+                        if re.compile("e8").match(byte_data):
+                            opcode.append("e8[1-8]") # call address(?? ?? ?? ??)
+
+                    elif i.mnemonic == "test":
+                        if re.compile("8[4-5]|A[8-9]").match(byte_data):
+                            opcode.append(byte_data[:1]+"???") # test ??
+
+                    elif i.mnemonic == "and":
+                        if re.compile("81").match(byte_data):
+                            opcode.append(byte_data[:3]+"?[1-8]") # ex) 81 e3 f8 07 00 00 -> and ebx, 7f8
+                        elif re.compile("2[0-5]").match(byte_data):
+                            opcode.append(byte_data[:1]+"?[1-4]") # ex) 22 d1 -> and dl, cl
+
+                    else:
+                        opcode.append(byte_data)
+
+                if ''.join(opcode)[-1] == "]": # syntax error, unexpected '}', expecting _BYTE_ or _MASKED_BYTE_ or '(' or '['
+                    opcode.append("??")
+                result += "      $" + name + " = {" + ''.join(opcode) + "}\n"
+            else:
+                result += "      $" + name + " = " + self.ruleset_list[name][0]+"\n"
         result += "  condition:\n"
         result += "      all of them\n"
         result += "}"
