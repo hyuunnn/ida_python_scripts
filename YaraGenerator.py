@@ -31,6 +31,7 @@ class YaraChecker(PluginForm):
                     strings = match.strings[0]
                     result[os.path.basename(j)] = [i[0], hex(strings[0]).replace("L",""), strings[1], strings[2]]
         self.tableWidget.setRowCount(len(result.keys()))
+        self.label4.setText(str(len(result.keys())))
         
         for idx, filename in enumerate(result.keys()):
             self.tableWidget.setItem(idx, 0, QTableWidgetItem(result[filename][0]))
@@ -51,11 +52,15 @@ class YaraChecker(PluginForm):
         self.TextEdit1.insertPlainText(self.data)
         self.SearchButton = QPushButton("Search")
         self.SearchButton.clicked.connect(self.Search)
+        self.label3 = QLabel("Detect Count : ")
+        self.label4 = QLabel("0")
 
         self.layout = QVBoxLayout()
         GL1 = QGridLayout()
         GL1.addWidget(self.path, 0, 0)
         GL1.addWidget(self.PathButton, 0, 1)
+        GL1.addWidget(self.label3, 0, 2)
+        GL1.addWidget(self.label4, 0, 3)
         self.layout.addLayout(GL1)
 
         self.layout.addWidget(self.label2)
