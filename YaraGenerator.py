@@ -114,7 +114,11 @@ class YaraGenerator(PluginForm):
                 CODE = bytearray.fromhex(self.ruleset_list[name][0][1:-1].strip().replace("\\x"," "))
                 for i in md.disasm(CODE, 0x1000):
                     byte_data = "".join('{:02x}'.format(x) for x in i.bytes)
-                    if i.mnemonic == "push":
+                    
+                    if byte_data.startswith("ff"): # ex) ff d7 -> call edi, 8b 3d a8 e1 40 00 -> mov edi, ds:GetDlgItem
+                        opcode.append("ff[1-5]")
+
+                    elif i.mnemonic == "push":
                         if re.compile("5[0-7]|0(6|e)|1(6|e)").match(byte_data): # push e[a-b-c]x ..
                             opcode.append(byte_data[:1]+"?")
                         elif re.compile("6(8|a)+").match(byte_data):
