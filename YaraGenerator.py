@@ -121,7 +121,7 @@ class YaraGenerator(PluginForm):
                     elif byte_data.startswith("0f"): # ex) 0f 84 bb 00 00 00 -> jz loc_40112A, 0f b6 0b -> movzx cx, byte ptr [ebx]
                         opcode.append("0f[1-5]") # (multi byte)
 
-                    elif re.compile("[7[0-9a-f]").match(byte_data): # jo, jno, jb, jnb, jz, jnz, jbe, ja, js, jns, jp, jnp, jl, jnl, jle, jnle
+                    elif re.compile("7[0-9a-f]").match(byte_data): # jo, jno, jb, jnb, jz, jnz, jbe, ja, js, jns, jp, jnp, jl, jnl, jle, jnle
                         opcode.append(byte_data[2:]+"??") # ex) 7c 7f -> jl 0x81 (7c only 1 byte) (1byte < have 0f)
 
                     elif i.mnemonic == "push":
