@@ -118,6 +118,9 @@ class YaraGenerator(PluginForm):
                     if byte_data.startswith("ff"): # ex) ff d7 -> call edi, 8b 3d a8 e1 40 00 -> mov edi, ds:GetDlgItem
                         opcode.append("ff[1-5]")
 
+                    elif byte_data.startswith("0f"): # ex) 0f 84 bb 00 00 00 -> jz loc_40112A, 0f b6 0b -> movzx cx, byte ptr [ebx]
+                        opcode.append("0f[1-5]") # (multi byte)
+
                     elif i.mnemonic == "push":
                         if re.compile("5[0-7]|0(6|e)|1(6|e)").match(byte_data): # push e[a-b-c]x ..
                             opcode.append(byte_data[:1]+"?")
@@ -132,15 +135,13 @@ class YaraGenerator(PluginForm):
 
                     elif i.mnemonic == "mov":
                         if re.compile("b[8-f]").match(byte_data): # ex) b8 01 22 00 00 -> mov eax, 0x2201, bf 38 00 00 00 -> mov edi, 38 , 8b 54 24 10 -> mov edx, [esp+32ch+var_31c]
-                            opcode.append(byte_data[:2]+"[1-4]")
+                            opcode.append(byte_data[:2]+"[4]")
                         elif re.compile("b[0-7]").match(byte_data): # ex) b7 60 -> mov bh, 0x60
                             opcode.append("b?"+byte_data[2:])
-                        elif re.compile("8[8-9a-c]|8e|c[7-8]").match(byte_data):
+                        elif re.compile("8[8-9a-c]|8e|c[6-7]").match(byte_data):
                             opcode.append(byte_data[:2]+"[1-8]") # ex) 8b 5c 24 14 -> mob ebx, [esp+10+ThreadParameter], 8b f0 -> mov esi, eax , c7 44 24 1c 00 00 00 00 -> mov [esp+338+var_31c], 0
                         elif re.compile("a[0-3]").match(byte_data):
                             opcode.append(byte_data[:2]+"[1-4]") # ex) a1 60 40 41 00 -> mov eax, __security_cookie
-
-                    #elif i.mnemonic == "cmp":
 
                     elif i.mnemonic == "inc":
                         if re.compile("4[0-7]").match(byte_data):
@@ -151,23 +152,80 @@ class YaraGenerator(PluginForm):
                             opcode.append(byte_data[:1]+"?")
 
                     elif i.mnemonic == "xor":
-                        if re.compile("3[0-5]").match(byte_data):
+                        if re.compile("3[0-3]").match(byte_data):
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        elif re.compile("34").match(byte_data): # ex) 34 da -> xor al, 0xda 
                             opcode.append(byte_data[:2]+"??")
+                        elif re.compile("35").match(byte_data): # ex) 35 da 00 00 00 -> xor eax, 0xda
+                            opcode.append("35[4]")
+
+                    elif i.mnemonic == "add":
+                        if re.compile("0[0-3]").match(byte_data):
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        elif re.compile("04").match(byte_data): # ex) 04 da -> xor al, 0xda 
+                            opcode.append(byte_data[:2]+"??")
+                        elif re.compile("05").match(byte_data): # ex) 05 da 00 00 00 -> xor eax, 0xda
+                            opcode.append("05[4]")
 
                     elif i.mnemonic == "call":
                         if re.compile("e8").match(byte_data):
                             opcode.append("e8[1-8]") # call address(?? ?? ?? ??)
 
                     elif i.mnemonic == "test":
-                        if re.compile("8[4-5]|A[8-9]").match(byte_data):
-                            opcode.append(byte_data[:1]+"???") # test ??
+                        if re.compile("8[4-5]|a8").match(byte_data): # ex) 84 ea -> test dl, ch
+                            opcode.append(byte_data[:2]+"??") 
+                        elif re.compile("a9").match(byte_data): # ex) a9 ea 00 00 00 -> test eax, 0xea
+                            opcode.append("a9[4]")
 
                     elif i.mnemonic == "and":
                         if re.compile("8[0-3]").match(byte_data):
                             opcode.append(byte_data[:3]+"?[1-8]") # ex) 81 e3 f8 07 00 00 -> and ebx, 7f8
-                        elif re.compile("2[0-5]").match(byte_data):
-                            opcode.append(byte_data[:2]+"[1-4]") # ex) 22 d1 -> and dl, cl
+                        elif re.compile("2[0-3]").match(byte_data):
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        elif re.compile("24").match(byte_data):
+                            opcode.append(byte_data[:2]+"??") # ex) 22 d1 -> and dl, cl
+                        elif re.compile("25").match(byte_data):
+                            opcode.append(byte_data[:2]+"[4]")
 
+                    elif i.mnemonic == "lea":
+                        if re.compile("8d").match(byte_data): # ex) 8d 9b 00 00 00 00 -> lea ebx, [ebx+0] == 8d 1b
+                            opcode.append("8d[1-6]")
+
+                    elif i.mnemonic == "jl": # ex) 7c 7f -> jl 0x81 (7c only 1 byte) (1byte < have 0f)
+                        if re.compile("7c").match(byte_data):
+                            opcode.append("7c??")
+
+                    elif i.mnemonic == "sub":
+                        if re.compile("2[8a-b]").match(byte_data): # ex) 2a 5c 24 14 -> sub	bl, byte ptr [esp + 0x14]
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        if re.compile("2c").match(byte_data): # ex) 28 da -> sub dl, bl
+                            opcode.append(byte_data[:2]+"??")
+                        elif re.compile("2d").match(byte_data): # ex) 2d da 00 00 00 -> sub eax, 0xda
+                            opcode.append("2d[4]")
+                        elif re.compile("8[2-3]").match(byte_data):
+                            opcode.append("8?"+byte_data[2:])
+
+                    elif i.mnemonic == "or":
+                        if re.compile("0[8a-b]").match(byte_data): # ex) 08 14 30 -> or byte ptr [eax + esi], dl , 0b 5c 24 14 -> or ebx, dword ptr [esp + 0x14]
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        elif re.compile("0c").match(byte_data): # ex) 0c ea -> or al, 0xea
+                            opcode.append(byte_data[:2]+"??")
+                        elif re.compile("0d").match(byte_data): # ex) 0d ea 00 00 00 -> or eax, 0xea
+                            opcode.append("0d[4]")
+
+                    elif i.mnemonic == "cmp":
+                        if re.compile("3[8a-b]").match(byte_data):
+                            opcode.append(byte_data[:2]+"[1-4]")
+                        elif re.compile("3c").match(byte_data): # ex) 3a ea -> cmp ch, dl
+                            opcode.append(byte_data[:2]+"??")
+                        elif re.compile("3d").match(byte_data): # ex) 3d ea 00 00 00 -> cmp eax, 0xea
+                            opcode.append("3d[4]")
+
+                    elif i.mnemonic == "shl" or i.mnemonic == "sar":
+                        if re.compile("c[0-1]").match(byte_data): # ex) c1 fa 02 -> sar edx, 2 , 
+                            opcode.append(byte_data[:2]+"[2]")
+                        elif re.compile("d[0-3]").match(byte_data): # ex) d0 fa -> sar dl, 1
+                            opcode.append(byte_data[:2]+"??")
                     else:
                         opcode.append(byte_data)
 
