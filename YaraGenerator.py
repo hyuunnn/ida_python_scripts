@@ -121,6 +121,9 @@ class YaraGenerator(PluginForm):
                     elif byte_data.startswith("0f"): # ex) 0f 84 bb 00 00 00 -> jz loc_40112A, 0f b6 0b -> movzx cx, byte ptr [ebx]
                         opcode.append("0f[1-5]") # (multi byte)
 
+                    elif re.compile("[7[0-9a-f]").match(byte_data): # jo, jno, jb, jnb, jz, jnz, jbe, ja, js, jns, jp, jnp, jl, jnl, jle, jnle
+                        opcode.append(byte_data[2:]+"??") # ex) 7c 7f -> jl 0x81 (7c only 1 byte) (1byte < have 0f)
+
                     elif i.mnemonic == "push":
                         if re.compile("5[0-7]|0(6|e)|1(6|e)").match(byte_data): # push e[a-b-c]x ..
                             opcode.append(byte_data[:1]+"?")
@@ -190,10 +193,6 @@ class YaraGenerator(PluginForm):
                     elif i.mnemonic == "lea":
                         if re.compile("8d").match(byte_data): # ex) 8d 9b 00 00 00 00 -> lea ebx, [ebx+0] == 8d 1b
                             opcode.append("8d[1-6]")
-
-                    elif i.mnemonic == "jl": # ex) 7c 7f -> jl 0x81 (7c only 1 byte) (1byte < have 0f)
-                        if re.compile("7c").match(byte_data):
-                            opcode.append("7c??")
 
                     elif i.mnemonic == "sub":
                         if re.compile("2[8a-b]").match(byte_data): # ex) 2a 5c 24 14 -> sub	bl, byte ptr [esp + 0x14]
