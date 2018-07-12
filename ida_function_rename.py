@@ -15,6 +15,9 @@ API_List = {
         }
 
 class function_rename(PluginForm):
+    def jump_code(self, row, column):
+        jumpto(int(self.tableWidget.item(row,1).text().replace("L",""), 16))
+
     def OnCreate(self, form):
         # https://reverseengineering.stackexchange.com/questions/14725/using-ida-python-iterate-through-all-functions-and-their-instructions
         for segea in Segments():
@@ -58,6 +61,7 @@ class function_rename(PluginForm):
             for count, i in enumerate(data[1]):
                 count2 = count + 1
                 self.tableWidget.setItem(idx, count2, QTableWidgetItem(str(i)))
+        self.tableWidget.cellDoubleClicked.connect(self.jump_code)
         self.layout.addWidget(self.tableWidget)
         self.parent.setLayout(self.layout)
 
